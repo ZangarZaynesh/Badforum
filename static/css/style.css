@@ -1,0 +1,184 @@
+                        /* FOR INDEX.HTML PAGE */
+.header {
+    margin: 20px auto;
+    /* padding-top: 30px; */
+    background-color: aqua;
+    color: darkslategray;
+    /* background-image: url("/static/images/fonHeader1.jpg"); */
+    height: 140px;
+    border-style: double;
+    border-radius: 0px 50px 70px 100px;
+    justify-content: center;
+    /* display: inline-flex; */
+    /* box-sizing: border-box; */
+}
+
+.HeaderName {
+    display: inline-flex;
+    position: absolute;
+    top : 40px;
+    left: 50%;
+    /* justify-content: center; */
+    margin-top: 40px;
+    font-size: xx-large;
+    font-style: italic;
+    color: ivory;
+    font-weight: 900;
+}
+
+.forAuth {
+    display: inline-flex;
+    float: right;
+    margin-top: 50px;
+}
+
+.SignIn {
+    margin-right: 10px;
+}
+
+.Registration {
+    margin-right: 80px;
+}
+
+.forAuth a {
+    padding: 5px;
+    background-color: white;
+    color: brown;
+    text-decoration: none;
+    border-style: solid;
+    border-width: 2px;
+    border-radius: 5px;
+}
+
+.Posts {
+    margin: 20px;
+    padding: 10px;
+    border-bottom-style: double;
+}
+
+.PostsHeader {
+    display: flex;
+    justify-content: space-between;
+    font-size: 80%;
+    color: green;
+}
+
+.textPosts {
+    color: coral;
+    font-weight: 600;
+    text-align: center;
+}
+
+                                                        /* FOR REGISTARTION.HTML PAGE */
+
+.bodyRegister {
+    display: flex;
+    border-radius: 10px;
+    border-style: solid;
+    margin: auto;
+    margin-top: 200px;
+    padding: 20px;
+    height: 900px;
+    width: 900px;
+}
+
+.registerData {
+    margin-top: 200px;
+}
+
+.registerImg {
+    margin-top: 250px;
+    margin-left: 90px;
+}
+
+.registerName {
+    margin: 20px;
+    font-style: italic;
+    font-size: xx-large;
+    font-weight: 900;
+    color: chocolate;
+}
+
+.registerInputsTexts {
+    margin: 20px;
+}
+
+.registerLogin {
+    margin-bottom: 20px;
+}
+
+.registerLogin input {
+    padding: 5px;
+    font-size: large;
+}
+
+.registerPassword {
+    /* display: flex; */
+    margin-bottom: 20px;
+}
+
+.registerPasswordFirst {
+    margin-bottom: 20px;
+}
+
+.registerPassword input {
+    font-size: large;
+    padding: 5px;
+}
+
+/* .registerPasswordSecond {
+    margin-bottom: 20px;
+}
+
+.registerPasswordSecond input {
+    font-size: large;
+    padding: 5px;
+} */
+
+.registerEmail input {
+    margin-bottom: 20px;
+    font-size: large;
+    padding: 5px;
+}
+
+
+.registerSubmits {
+    display: flex;
+}
+
+.registerSubmits a {
+    text-decoration: none;
+    color: chocolate;
+}
+
+.registerSignIn {
+    border-style: solid;
+    border-width: 2px;
+    border-radius: 5px;
+    color: chocolate;
+    padding: 10px;
+    margin: 20px;
+    font-size: large;
+    font-weight: 550;
+}
+
+.registerCreate {
+    margin: 20px;
+}
+
+.createSubmit {
+    background-color: white;
+    color: chocolate;
+    border-color: chocolate;
+    border-radius: 5px;
+    border-width: 3px;
+    font-size: large;
+    font-weight: 700;
+    padding: 10px;
+    width: 100px;
+}
+
+
+
+
+
