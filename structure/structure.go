@@ -54,9 +54,10 @@ func (h *HandlerArt) Index(w http.ResponseWriter, r *http.Request) {
 
 	var Post []Posts
 
-	rows, err := h.Art.Query("SELECT * FROM users INNER JOIN posts ON users.id = posts.user_id")
+	rows, err := h.Art.Query("SELECT * FROM users INNER JOIN posts ON users.id = posts.user_id;")
 	if err != nil {
-		log.Fatal(err)
+		Err("500 Internal Server Error", http.StatusInternalServerError, w, r)
+		return
 	}
 	var id_users, id_posts, user_login, user_password, user_email, post_date, post_user_id, post_category_id, post string
 	for rows.Next() {
