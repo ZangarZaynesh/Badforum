@@ -19,7 +19,7 @@ func CheckDB() *sql.DB {
 	}
 	var d database
 	d.open("db/database-sqlite.db")
-	// d.createTable()
+	d.createTable()
 	return d.db
 }
 
@@ -53,15 +53,15 @@ func (d *database) createTable() {
 		log.Fatalf("This error is in db.d.createTable().users!!! %v", err)
 	}
 
-	_, err = d.db.Exec(`INSERT INTO users (id, login, password, email)
-	VALUES (1, 'zangar', '12345678', 'zangarzaynesh'),
-	(2, 'batyr', '12345678', 'batyrbatyrovich'),
-	(3, 'magzhan', '12345678', 'magzhanmagzhanovich'),
-	(4, 'nurlan', '12345678', 'nurlannurlanovich');`)
+	// _, err = d.db.Exec(`INSERT INTO users (id, login, password, email)
+	// VALUES (1, 'zangar', '12345678', 'zangarzaynesh'),
+	// (2, 'batyr', '12345678', 'batyrbatyrovich'),
+	// (3, 'magzhan', '12345678', 'magzhanmagzhanovich'),
+	// (4, 'nurlan', '12345678', 'nurlannurlanovich');`)
 
-	if err != nil {
-		log.Fatalf("This error is in db.d.InsertIntoUsers!!! %v", err)
-	}
+	// if err != nil {
+	// 	log.Fatalf("This error is in db.d.InsertIntoUsers!!! %v", err)
+	// }
 
 	_, err = d.db.Exec(`CREATE TABLE IF NOT EXISTS categories (
         "id"    INTEGER NOT NULL UNIQUE,
@@ -98,21 +98,21 @@ func (d *database) createTable() {
 		log.Fatalf("This error is in db.d.createTable().posts!!! %v", err)
 	}
 
-	_, err = d.db.Exec(`INSERT INTO posts (id, user_id, category_id, post)
-	VALUES (1, 1, 2, 'first post zangar'),
-	(2, 1, 1, 'second post zangar'),
-	(3, 2, 3, 'first post batyr'),
-	(4, 2, 1, 'second post batyr'),
-	(5, 3, 3, 'first post magzhan'),
-	(6, 3, 2, 'second post magzhan'),
-	(7, 4, 3, 'first post nurlan'),
-	(8, 4, 3, 'second post nurlan'),
-	(9, 4, 6, 'third post nurlan'),
-	(10, 1, 5, 'third post zangar');`)
+	// _, err = d.db.Exec(`INSERT INTO posts (id, user_id, category_id, post)
+	// VALUES (1, 1, 2, 'first post zangar'),
+	// (2, 1, 1, 'second post zangar'),
+	// (3, 2, 3, 'first post batyr'),
+	// (4, 2, 1, 'second post batyr'),
+	// (5, 3, 3, 'first post magzhan'),
+	// (6, 3, 2, 'second post magzhan'),
+	// (7, 4, 3, 'first post nurlan'),
+	// (8, 4, 3, 'second post nurlan'),
+	// (9, 4, 6, 'third post nurlan'),
+	// (10, 1, 5, 'third post zangar');`)
 
-	if err != nil {
-		log.Fatalf("This error is in db.d.InsertIntoPosts!!! %v", err)
-	}
+	// if err != nil {
+	// 	log.Fatalf("This error is in db.d.InsertIntoPosts!!! %v", err)
+	// }
 
 	_, err = d.db.Exec(`CREATE TABLE IF NOT EXISTS postslikes (
         "id"    INTEGER NOT NULL UNIQUE,
