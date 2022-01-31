@@ -44,7 +44,7 @@ func (d *database) createTable() {
 	(
 		id    INTEGER NOT NULL UNIQUE,
 		login    TEXT NOT NULL UNIQUE,
-		password    TEXT NOT NULL,
+		password    	BLOB NOT NULL,
 		email    TEXT NOT NULL UNIQUE,
 		PRIMARY KEY(id AUTOINCREMENT)
 	);`)
