@@ -2,21 +2,27 @@ package structure
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"regexp"
+
+	"github.com/satori/uuid"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 type Error struct {
 	Str    string
-	number int
+	Number int
 }
 
-type HandlerArt struct {
-	Art *sql.DB
+type HandlerDB struct {
+	DB     *sql.DB
+	Str    string
+	Number int
 }
 
 type SendStruct struct {
@@ -34,13 +40,13 @@ func Err(Str string, Status int, w http.ResponseWriter, r *http.Request) {
 	ExecTemp("templates/error.html", "error.html", Info, w, r)
 }
 
-func (h *HandlerArt) Index(w http.ResponseWriter, r *http.Request) {
+func (h *HandlerDB) Index(w http.ResponseWriter, r *http.Request) {
 
 	if !PathMethod("/", "GET", w, r) {
 		return
 	}
 
-	rows, err := h.Art.Query("SELECT * FROM users INNER JOIN posts ON users.id = posts.user_id;")
+	rows, err := h.DB.Query("SELECT * FROM posts INNER JOIN users ON users.id = posts.user_id ORDER BY posts.id DESC;")
 	if err != nil {
 		Err("500 Internal Server Error", http.StatusInternalServerError, w, r)
 		return
@@ -49,7 +55,7 @@ func (h *HandlerArt) Index(w http.ResponseWriter, r *http.Request) {
 	var Post []Posts
 	var id_users, id_posts, user_login, user_password, user_email, post_date, post_user_id, post_category_id, post string
 	for rows.Next() {
-		err = rows.Scan(&id_users, &user_login, &user_password, &user_email, &id_posts, &post_date, &post_user_id, &post_category_id, &post)
+		err = rows.Scan(&id_posts, &post_date, &post_user_id, &post_category_id, &post, &id_users, &user_login, &user_password, &user_email)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -68,43 +74,87 @@ func (h *HandlerArt) Index(w http.ResponseWriter, r *http.Request) {
 	ExecTemp("templates/index.html", "index.html", Post, w, r)
 }
 
-func (h *HandlerArt) Registration(w http.ResponseWriter, r *http.Request) {
-
-	if !PathMethod("/registration", "GET", w, r) {
+func (h *HandlerDB) Registration(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("asdf")
+	if !PathMethod("/registration/", "GET", w, r) {
 		return
 	}
-	ExecTemp("templates/registration.html", "registration.html", h.Art, w, r)
+	ExecTemp("templates/registration.html", "registration.html", &Error{Str: h.Str, Number: h.Number}, w, r)
+	h.Str, h.Number = "", 0
 }
 
-func (h *HandlerArt) Created(w http.ResponseWriter, r *http.Request) {
-
-	if !PathMethod("/registration/created", "POST", w, r) {
+func (h *HandlerDB) SignIn(w http.ResponseWriter, r *http.Request) {
+	if !PathMethod("/auth/", "GET", w, r) {
 		return
 	}
 
 	login := r.FormValue("login")
 	if login == "" {
-		Err("400 Bad Request", http.StatusBadRequest, w, r)
+		ExecTemp("templates/signin.html", "signin.html", Error{Str: "Enter login", Number: 403}, w, r)
 		return
 	}
 
-	if !test("login", login, h, w, r) {
+	row := h.DB.QueryRow("SELECT login, password FROM users WHERE users.login= ?;", login)
+	var tempPassword []byte
+	var tempLogin string
+	err1 := row.Scan(&tempLogin, &tempPassword)
+	if err1 != nil && err1 == sql.ErrNoRows {
+		ExecTemp("templates/signin.html", "signin.html", Error{"Incorrect login", 403}, w, r)
 		return
 	}
 
 	password := r.FormValue("password")
 	if password == "" {
-		Err("400 Bad Request", http.StatusBadRequest, w, r)
+		ExecTemp("templates/signin.html", "signin.html", Error{"Enter password", 403}, w, r)
+		return
+	}
+
+	err := bcrypt.CompareHashAndPassword(tempPassword, []byte(password))
+	if err != nil {
+		ExecTemp("templates/signin.html", "signin.html", Error{"Invalid password", 403}, w, r)
+		return
+	}
+
+	sessionID := uuid.NewV4()
+	cookie := &http.Cookie{
+		Name:  "session",
+		Value: sessionID.String(),
+	}
+	http.SetCookie(w, cookie)
+
+	ExecTemp("templates/index.html", "index.html", h.DB, w, r)
+}
+
+func (h *HandlerDB) Created(w http.ResponseWriter, r *http.Request) {
+	fmt.Println(r.URL.Path)
+	if !PathMethod("/registration/created/", "POST", w, r) {
+		return
+	}
+
+	login := r.FormValue("login")
+	if login == "" {
+		// h.Registration(w, r)
+		ExecTemp("templates/registration.html", "registration.html", Error{"Enter login", 400}, w, r)
+		return
+	}
+
+	if !test("login", login, "This login already exists", 400, h, w, r) {
+		return
+	}
+
+	password := r.FormValue("password")
+	if password == "" {
+		ExecTemp("templates/registration.html", "registration.html", Error{"Enter password", 400}, w, r)
 		return
 	}
 
 	email := r.FormValue("email")
 	if !isEmailValid(email) {
-		Err("400 Bad Request", http.StatusBadRequest, w, r)
+		ExecTemp("templates/registration.html", "registration.html", Error{"Invalid email (everyone@example.com)", 400}, w, r)
 		return
 	}
 
-	if !test("email", email, h, w, r) {
+	if !test("email", email, "This email already exists", 400, h, w, r) {
 		return
 	}
 
@@ -113,7 +163,7 @@ func (h *HandlerArt) Created(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := h.Art.Exec("INSERT INTO users (login, password, email) VALUES ( ?, ?, ?);", login, GenPassword, email)
+	_, err := h.DB.Exec("INSERT INTO users (login, password, email) VALUES ( ?, ?, ?);", login, GenPassword, email)
 	if err != nil {
 		Err("400 Bad Request", http.StatusBadRequest, w, r)
 		return
@@ -140,15 +190,20 @@ func PathMethod(Path, Method string, w http.ResponseWriter, r *http.Request) boo
 	return true
 }
 
-func test(NameColumn, ValueColumn string, h *HandlerArt, w http.ResponseWriter, r *http.Request) bool {
-	row := h.Art.QueryRow("SELECT ? FROM users WHERE users."+NameColumn+"= ?;", NameColumn, ValueColumn)
+func test(NameColumn, ValueColumn, str string, number int, h *HandlerDB, w http.ResponseWriter, r *http.Request) bool {
+	row := h.DB.QueryRow("SELECT ? FROM users WHERE users."+NameColumn+"= ?;", NameColumn, ValueColumn)
 
-	err1 := row.Scan()
-	if err1 == nil && err1 != sql.ErrNoRows {
-		Err("400 Bad Request", 400, w, r)
+	err := row.Scan()
+	fmt.Println(err)
+	fmt.Println(sql.ErrNoRows)
+	if !errors.Is(err, sql.ErrNoRows) {
+		fmt.Println("heloo")
+		fmt.Println(str)
+		h.Str, h.Number = str, number
+		r.URL.Path = "/registration/"
+		http.Redirect(w, r, r.Header.Get("/registration/"), 302)
 		return false
 	}
-
 	return true
 }
 

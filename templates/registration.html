@@ -22,10 +22,15 @@
     <div class="bodyRegister">
         <div class="registerData">
             <div class="registerName">Create an accaunt</div>
-            <form action="/registration/created" method="POST" autocomplete="off">
+            <form action="/registration/created/" method="POST" autocomplete="off">
                 <div class="registerInputsTexts">
                     <div class="registerLogin">
                         <input type="text" name="login" placeholder="login" required>
+                        <p>
+                            {{ if eq .Str "This login already exists" }}
+                                {{ .Str }}
+                            {{ end }}
+                        </p>
                     </div>
                     <div class="registerPassword">
                         <div class="registerPasswordFirst">
@@ -37,6 +42,11 @@
                     </div>
                     <div class="registerEmail">
                         <input type="email" name="email" placeholder="email" required>
+                        <p>
+                            {{ if eq .Str "This email already exists" }}
+                                {{ .Str }}
+                            {{ end }}
+                        </p>
                     </div>
                 </div>
                 <div class="registerSubmits">

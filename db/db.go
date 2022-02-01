@@ -99,16 +99,16 @@ func (d *database) createTable() {
 	}
 
 	// _, err = d.db.Exec(`INSERT INTO posts (id, user_id, category_id, post)
-	// VALUES (1, 1, 2, 'first post zangar'),
-	// (2, 1, 1, 'second post zangar'),
-	// (3, 2, 3, 'first post batyr'),
-	// (4, 2, 1, 'second post batyr'),
-	// (5, 3, 3, 'first post magzhan'),
-	// (6, 3, 2, 'second post magzhan'),
-	// (7, 4, 3, 'first post nurlan'),
-	// (8, 4, 3, 'second post nurlan'),
-	// (9, 4, 6, 'third post nurlan'),
-	// (10, 1, 5, 'third post zangar');`)
+	// VALUES (11, 1, 2, 'fourth post zangar');`)
+	// // (2, 1, 1, 'second post zangar'),
+	// // (3, 2, 3, 'first post batyr'),
+	// // (4, 2, 1, 'second post batyr'),
+	// // (5, 3, 3, 'first post magzhan'),
+	// // (6, 3, 2, 'second post magzhan'),
+	// // (7, 4, 3, 'first post nurlan'),
+	// // (8, 4, 3, 'second post nurlan'),
+	// // (9, 4, 6, 'third post nurlan'),
+	// // (10, 1, 5, 'third post zangar');`)
 
 	// if err != nil {
 	// 	log.Fatalf("This error is in db.d.InsertIntoPosts!!! %v", err)
