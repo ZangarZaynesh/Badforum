@@ -11,14 +11,30 @@
     <div class="bodyRegister">
         <div class="registerData">
             <div class="registerName">Sign In</div>
-            <form action="/" method="POST" autocomplete="off">
+            <form action="/auth/user/" method="POST" autocomplete="off">
                 <div class="registerInputsTexts">
                     <div class="registerLogin">
                         <input type="text" name="login" placeholder="login" required>
+                        <p>
+                            {{ if eq .Str "Enter login" }}
+                                {{ .Str }}
+                            {{ end }}
+                            {{ if eq .Str "Incorrected login or password" }}
+                                {{ .Str }}
+                            {{ end }}
+                        </p>
                     </div>
                     <div class="registerPassword">
                         <div class="registerPasswordFirst">
                             <input type="password" name="password" placeholder="password" required>
+                            <p>
+                                {{ if eq .Str "Enter password" }}
+                                    {{ .Str }}
+                                {{ end }}
+                                {{ if eq .Str "Invalid password" }}
+                                    {{ .Str }}
+                                {{ end }}
+                            </p>
                         </div>
                     </div>
                 </div>

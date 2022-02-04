@@ -4,13 +4,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"html/template"
 	"log"
 	"net/http"
 	"regexp"
 
 	"github.com/satori/uuid"
-
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -34,17 +32,37 @@ type Posts struct {
 }
 
 func Err(Str string, Status int, w http.ResponseWriter, r *http.Request) {
-
 	Info := Error{Str, Status}
 	w.WriteHeader(Status)
 	ExecTemp("templates/error.html", "error.html", Info, w, r)
 }
 
 func (h *HandlerDB) Index(w http.ResponseWriter, r *http.Request) {
-
 	if !PathMethod("/", "GET", w, r) {
 		return
 	}
+
+	// row := h.DB.QueryRow("SELECT ? FROM sessions WHERE ."+NameColumn+"= ?;", NameColumn, ValueColumn)
+
+	Session := r.Cookies()
+	fmt.Println("cookie: ", Session)
+	// if err != nil {
+	// 	cookie := &http.Cookie{
+	// 		Name:    "session",
+	// 		Value:   "failTest",
+	// 		Expires: time.Now().Add(720 * time.Second),
+	// 	}
+
+	// 	http.SetCookie(w, cookie)
+	// 	fmt.Println("WoooooW")
+	// 	fmt.Println(Session)
+	// 	// fmt.Println(Session.Name)
+	// 	// fmt.Println(Session.Value)
+	// } else {
+	// 	fmt.Println(Session.Name)
+	// 	fmt.Println(Session.Value)
+	// 	fmt.Println(err)
+	// }
 
 	rows, err := h.DB.Query("SELECT * FROM posts INNER JOIN users ON users.id = posts.user_id ORDER BY posts.id DESC;")
 	if err != nil {
@@ -75,7 +93,6 @@ func (h *HandlerDB) Index(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *HandlerDB) Registration(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("asdf")
 	if !PathMethod("/registration/", "GET", w, r) {
 		return
 	}
@@ -83,58 +100,15 @@ func (h *HandlerDB) Registration(w http.ResponseWriter, r *http.Request) {
 	h.Str, h.Number = "", 0
 }
 
-func (h *HandlerDB) SignIn(w http.ResponseWriter, r *http.Request) {
-	if !PathMethod("/auth/", "GET", w, r) {
-		return
-	}
-
-	login := r.FormValue("login")
-	if login == "" {
-		ExecTemp("templates/signin.html", "signin.html", Error{Str: "Enter login", Number: 403}, w, r)
-		return
-	}
-
-	row := h.DB.QueryRow("SELECT login, password FROM users WHERE users.login= ?;", login)
-	var tempPassword []byte
-	var tempLogin string
-	err1 := row.Scan(&tempLogin, &tempPassword)
-	if err1 != nil && err1 == sql.ErrNoRows {
-		ExecTemp("templates/signin.html", "signin.html", Error{"Incorrect login", 403}, w, r)
-		return
-	}
-
-	password := r.FormValue("password")
-	if password == "" {
-		ExecTemp("templates/signin.html", "signin.html", Error{"Enter password", 403}, w, r)
-		return
-	}
-
-	err := bcrypt.CompareHashAndPassword(tempPassword, []byte(password))
-	if err != nil {
-		ExecTemp("templates/signin.html", "signin.html", Error{"Invalid password", 403}, w, r)
-		return
-	}
-
-	sessionID := uuid.NewV4()
-	cookie := &http.Cookie{
-		Name:  "session",
-		Value: sessionID.String(),
-	}
-	http.SetCookie(w, cookie)
-
-	ExecTemp("templates/index.html", "index.html", h.DB, w, r)
-}
-
 func (h *HandlerDB) Created(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(r.URL.Path)
 	if !PathMethod("/registration/created/", "POST", w, r) {
 		return
 	}
 
 	login := r.FormValue("login")
 	if login == "" {
-		// h.Registration(w, r)
-		ExecTemp("templates/registration.html", "registration.html", Error{"Enter login", 400}, w, r)
+		h.Str, h.Number = "Enter login", 400
+		http.Redirect(w, r, "/registration/", 302)
 		return
 	}
 
@@ -144,13 +118,15 @@ func (h *HandlerDB) Created(w http.ResponseWriter, r *http.Request) {
 
 	password := r.FormValue("password")
 	if password == "" {
-		ExecTemp("templates/registration.html", "registration.html", Error{"Enter password", 400}, w, r)
+		h.Str, h.Number = "Enter password", 400
+		http.Redirect(w, r, "/registration/", 302)
 		return
 	}
 
 	email := r.FormValue("email")
 	if !isEmailValid(email) {
-		ExecTemp("templates/registration.html", "registration.html", Error{"Invalid email (everyone@example.com)", 400}, w, r)
+		h.Str, h.Number = "Incorrected email", 400
+		http.Redirect(w, r, "/registration/", 302)
 		return
 	}
 
@@ -172,6 +148,71 @@ func (h *HandlerDB) Created(w http.ResponseWriter, r *http.Request) {
 	ExecTemp("templates/created.html", "created.html", &SendStruct{SuccessFull: "succesfull"}, w, r)
 }
 
+func (h *HandlerDB) SignIn(w http.ResponseWriter, r *http.Request) {
+	if !PathMethod("/auth/", "GET", w, r) {
+		return
+	}
+
+	ExecTemp("templates/signIn.html", "signIn.html", h, w, r)
+	h.Str, h.Number = "", 0
+}
+
+func (h *HandlerDB) SignAccess(w http.ResponseWriter, r *http.Request) {
+	if !PathMethod("/auth/user/", "POST", w, r) {
+		return
+	}
+
+	login := r.FormValue("login")
+	if login == "" {
+		h.Str, h.Number = "Enter login", 400
+		http.Redirect(w, r, "/auth/", 302)
+		return
+	}
+
+	row := h.DB.QueryRow("SELECT id, login, password FROM users WHERE users.login= ?;", login)
+	var user_id int
+	var tempPassword []byte
+	var tempLogin string
+	err1 := row.Scan(&user_id, &tempLogin, &tempPassword)
+	if errors.Is(err1, sql.ErrNoRows) {
+		h.Str, h.Number = "Incorrected login or password", 400
+		http.Redirect(w, r, "/auth/", 302)
+		return
+	}
+
+	password := r.FormValue("password")
+	if password == "" {
+		h.Str, h.Number = "Enter password", 400
+		http.Redirect(w, r, "/auth/", 302)
+		return
+	}
+	BytePass := []byte(password)
+	err := bcrypt.CompareHashAndPassword(tempPassword, BytePass)
+	if err != nil {
+		h.Str, h.Number = "Invalid password", 400
+		http.Redirect(w, r, "/auth/", 302)
+		return
+	}
+
+	sessionID := uuid.NewV4()
+	cookie := &http.Cookie{
+		Name:   "session",
+		Value:  sessionID.String(),
+		MaxAge: 300,
+	}
+	http.SetCookie(w, cookie)
+
+	_, err = h.DB.Exec("INSERT INTO sessions (user_id, key) VALUES ( ?, ?);", user_id, sessionID)
+
+	if err != nil {
+		Err("400 Bad Request", http.StatusBadRequest, w, r)
+		return
+	}
+	// ExecTemp("templates/index.html", "index.html", h, w, r)
+	// http.Redirect(w, r, "/", 302)
+
+}
+
 func isEmailValid(e string) bool {
 	emailRegex := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
 	return emailRegex.MatchString(e)
@@ -191,17 +232,13 @@ func PathMethod(Path, Method string, w http.ResponseWriter, r *http.Request) boo
 }
 
 func test(NameColumn, ValueColumn, str string, number int, h *HandlerDB, w http.ResponseWriter, r *http.Request) bool {
-	row := h.DB.QueryRow("SELECT ? FROM users WHERE users."+NameColumn+"= ?;", NameColumn, ValueColumn)
 
+	row := h.DB.QueryRow("SELECT ? FROM users WHERE users."+NameColumn+"= ?;", NameColumn, ValueColumn)
 	err := row.Scan()
-	fmt.Println(err)
-	fmt.Println(sql.ErrNoRows)
 	if !errors.Is(err, sql.ErrNoRows) {
-		fmt.Println("heloo")
-		fmt.Println(str)
 		h.Str, h.Number = str, number
-		r.URL.Path = "/registration/"
-		http.Redirect(w, r, r.Header.Get("/registration/"), 302)
+		// r.URL.Path = "/registration/"
+		http.Redirect(w, r, "/registration/", 302)
 		return false
 	}
 	return true
@@ -221,13 +258,13 @@ func GeneratePass(password *[]byte, w http.ResponseWriter, r *http.Request) bool
 
 func ExecTemp(PathHTML, NameHTML string, Struct interface{}, w http.ResponseWriter, r *http.Request) {
 
-	tmpl, err := template.ParseFiles(PathHTML)
-	if err != nil {
-		Err("500 Internal Server Error", http.StatusInternalServerError, w, r)
-		return
-	}
+	// tmpl, err := template.ParseFiles(PathHTML)
+	// if err != nil {
+	// 	Err("500 Internal Server Error", http.StatusInternalServerError, w, r)
+	// 	return
+	// }
 
-	err = tmpl.ExecuteTemplate(w, NameHTML, Struct)
+	err := tmpl.ExecuteTemplate(w, NameHTML, Struct)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		log.Println(err)

@@ -99,8 +99,8 @@ func (d *database) createTable() {
 	}
 
 	// _, err = d.db.Exec(`INSERT INTO posts (id, user_id, category_id, post)
-	// VALUES (11, 1, 2, 'fourth post zangar');`)
-	// // (2, 1, 1, 'second post zangar'),
+	// VALUES (11, 1, 2, 'fourth post zangar'),
+	// (2, 1, 1, 'second post zangar');`)
 	// // (3, 2, 3, 'first post batyr'),
 	// // (4, 2, 1, 'second post batyr'),
 	// // (5, 3, 3, 'first post magzhan'),

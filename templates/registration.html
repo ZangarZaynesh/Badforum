@@ -30,11 +30,19 @@
                             {{ if eq .Str "This login already exists" }}
                                 {{ .Str }}
                             {{ end }}
+                            {{ if eq .Str "Enter login" }}
+                                {{ .Str }}
+                            {{ end }}
                         </p>
                     </div>
                     <div class="registerPassword">
                         <div class="registerPasswordFirst">
                             <input type="password" name="password" placeholder="password" required>
+                            <p>
+                            {{ if eq .Str "Enter password" }}
+                                {{ .Str }}
+                            {{ end }}
+                            </p>
                         </div>
                         <!-- <div class="registerPasswordSecond">
                             <input type="password" name="confirm" placeholder="confirm" required>
@@ -44,6 +52,9 @@
                         <input type="email" name="email" placeholder="email" required>
                         <p>
                             {{ if eq .Str "This email already exists" }}
+                                {{ .Str }}
+                            {{ end }}
+                            {{ if eq .Str "Incorrected email" }}
                                 {{ .Str }}
                             {{ end }}
                         </p>
